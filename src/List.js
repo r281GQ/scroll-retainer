@@ -1,46 +1,73 @@
-import React from 'react';
+import React, { Component } from 'react';
+import { func, number } from 'prop-types';
 
 import './App.css';
 
-export default class List extends React.Component {
+export default class List extends Component {
+  static propTypes = {
+    onRefsChange: func,
+    paddingAfter: number,
+    paddingBefore: number
+  };
+
   static defaultProps = {
-    onRefsChange: () => null
+    onRefsChange: () => null,
+    paddingAfter: 0,
+    paddingBefore: 0
   };
 
   _ref = {};
 
-  componentDidUpdate() {
-    Object.keys(this._ref).forEach(f => {
-      if (this._ref[f] === null) {
-        delete this._ref[f];
+  _handleItemRefChange = id => ref => {
+    this._ref[id] = ref;
+  };
+
+  _handleRefChange = () => {
+    Object.keys(this._ref).forEach(id => {
+      if (this._ref[id] === null) {
+        delete this._ref[id];
       }
     });
+  };
+
+  componentDidUpdate = prevProps => {
+    if (this.props.paddingAfter !== 0 && prevProps.paddingAfter === 0) {
+      this.props.onFirstPaddingApplied();
+    }
+
+    this._handleRefChange();
 
     this.props.onRefsChange(this._ref);
-  }
+  };
 
   render = () => {
+    const { data, paddingAfter, paddingBefore } = this.props;
+
     return (
       <div
         style={{
-          paddingTop: this.props.paddingBefore ? this.props.paddingBefore : 0,
-          paddingBottom: this.props.paddingAfter ? this.props.paddingAfter : 0
+          paddingTop: paddingBefore,
+          paddingBottom: paddingAfter
         }}
       >
-        {this.props.data.map(item => (
-          <div
-            ref={ref => (this._ref[item.id] = ref)}
-            key={item.id}
-            style={{
-              backgroundColor: item.id % 2 === 0 ? 'green' : 'purple',
-              width: '100%',
-              paddingTop: '50%'
-            }}
-            className="f"
-          >
-            <div style={{ height: item.height }}>{`${item.id}`}</div>
-          </div>
-        ))}
+        {data.map(item => {
+          const { id, height } = item;
+
+          return (
+            <div
+              ref={this._handleItemRefChange(id)}
+              key={id}
+              style={{
+                backgroundColor: id % 2 === 0 ? 'green' : 'purple',
+                width: '100%',
+                paddingTop: '50%'
+              }}
+              className="f"
+            >
+              <div style={{ height }}>{`${id}`}</div>
+            </div>
+          );
+        })}
       </div>
     );
   };

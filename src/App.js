@@ -50,6 +50,7 @@ class App extends Component {
               viewPort={this._getViewPort()}
               data={this.state.data}
               averageHeight={300}
+              defaultIndex={30}
             />
           ) : null}
         </div>
