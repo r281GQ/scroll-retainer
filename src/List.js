@@ -16,6 +16,8 @@ export default class List extends Component {
     paddingBefore: 0
   };
 
+  state = { initialised: false };
+
   _ref = {};
 
   _handleItemRefChange = id => ref => {
@@ -31,8 +33,13 @@ export default class List extends Component {
   };
 
   componentDidUpdate = prevProps => {
-    if (this.props.paddingAfter !== 0 && prevProps.paddingAfter === 0) {
+    if (
+      this.props.paddingAfter !== 0 &&
+      prevProps.paddingAfter === 0 &&
+      !this.state.initialised
+    ) {
       this.props.onFirstPaddingApplied();
+      this.setState({ initialised: true });
     }
 
     this._handleRefChange();

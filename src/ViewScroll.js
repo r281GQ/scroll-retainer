@@ -45,7 +45,7 @@ export default class ViewScroll extends Component {
   _sliceList = ({ startIndex, endingIndex }) => ({ id }) =>
     id <= endingIndex && id >= startIndex;
 
-  _handleScroll = () => {
+  _handleScroll = forceUpdate => {
     const { _calculateRectangles, _heights } = this;
 
     const { bufferCount, data, viewPort } = this.props;
@@ -88,7 +88,7 @@ export default class ViewScroll extends Component {
       partialState.startIndex !== this.state.startIndex ||
       partialState.endingIndex !== this.state.endingIndex;
 
-    if (haveIndexesChanged) {
+    if (haveIndexesChanged || forceUpdate) {
       this._prevRecs = this._recs;
       this._prevItems = {
         startIndex: this.state.startIndex,
@@ -152,9 +152,23 @@ export default class ViewScroll extends Component {
       };
     }
 
+    let after = 0;
+
+    const hasListChanged = !_recs[lastIndex];
+
+    if (hasListChanged) {
+      Object.keys(this._prevRecs).forEach(id => {
+        after = this._prevRecs[id]._top;
+      });
+
+      after = after - _recs[endingIndex]._top;
+    } else {
+      after = _recs[lastIndex]._top - _recs[endingIndex]._top;
+    }
+
     return {
       before: _recs[startIndex]._top,
-      after: _recs[lastIndex]._top - _recs[endingIndex]._top
+      after
     };
   };
 
@@ -179,12 +193,14 @@ export default class ViewScroll extends Component {
       : 0;
   };
 
-  _postRenderProcessing = () => {
+  _postRenderProcessing = newList => {
+    if (newList) {
+      return this._handleScroll(true);
+    }
+
     this._getNewHeights();
 
     const heightDelta = this._calculateHeightChange();
-
-    console.log(heightDelta);
 
     const hasUsedScrollRetention = !this._prevItems;
 
@@ -219,8 +235,8 @@ export default class ViewScroll extends Component {
     this._postRenderProcessing();
   };
 
-  componentDidUpdate = () => {
-    this._postRenderProcessing();
+  componentDidUpdate = prevProps => {
+    this._postRenderProcessing(prevProps.data !== this.props.data);
   };
 
   render = () => {
