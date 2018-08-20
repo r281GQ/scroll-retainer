@@ -18,7 +18,6 @@ export default class ViewPort {
   };
 
   _scrollTo = index => {
-    console.log(index);
     this._scroller.scrollTop = index;
   };
 

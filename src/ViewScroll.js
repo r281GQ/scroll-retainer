@@ -136,6 +136,8 @@ export default class ViewScroll extends Component {
     });
 
     this._heights = Object.assign({}, this._heights, newHeights);
+
+    return this._heights;
   }
 
   _calculatePadding = ({
@@ -228,6 +230,10 @@ export default class ViewScroll extends Component {
       this._handleScroll(event.target.scrollTop)
     );
 
+    if (this.props.defaultScroll && this.props.defaultHeights) {
+      this._heights = this.props.defaultHeights;
+    }
+
     this._recs = this._calculateRectangles(this.props.data, this._heights);
 
     this.setState({ initialised: true });
@@ -237,6 +243,13 @@ export default class ViewScroll extends Component {
 
   componentDidUpdate = prevProps => {
     this._postRenderProcessing(prevProps.data !== this.props.data);
+  };
+
+  componentWillUnmount = () => {
+    this.props.onDestroy({
+      persistedHeight: this.props.viewPort._getRect()._top,
+      persistedItemHeights: this._getNewHeights()
+    });
   };
 
   render = () => {
@@ -262,9 +275,8 @@ export default class ViewScroll extends Component {
         paddingAfter={after}
         onRefsChange={_handleRefsChange}
         onFirstPaddingApplied={() => {
-          if (this.props.defaultIndex !== 0) {
-            this._scrollToIndex(this.props.defaultIndex);
-            this.setState({ needFurtherPositioning: true });
+          if (this.props.defaultScroll !== 0) {
+            this.props.viewPort._scrollTo(this.props.defaultScroll);
           }
         }}
       />
